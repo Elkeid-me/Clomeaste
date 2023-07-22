@@ -1,0 +1,14 @@
+lf_or_crlf = _{ "\r\n" | "\n" }
+
+config_key_char =  { ASCII_ALPHA | ASCII_NONZERO_DIGIT | "_" }
+config_key      = @{ config_key_char* }
+
+config_value_char =  { !lf_or_crlf ~ ANY }
+config_value      = @{ config_value_char* }
+
+preamble_config_value = { (!("}" ~ PEEK) ~ ANY)+ }
+preamble_config_key = { "preamble" }
+
+config_item = { (preamble_config_key ~ " = " ~ PUSH("#"*) ~ "{" ~ preamble_config_value ~ "}" ~ POP) | (config_key ~ " = " ~ config_value)}
+
+clomeaste_config = { config_item ~ (lf_or_crlf+ ~ config_item)+ ~ lf_or_crlf* }

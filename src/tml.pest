@@ -1,0 +1,102 @@
+lf_or_crlf          = _{ "\r\n" | "\n" }
+star_primitive      =  { "\\*" }
+dollar_primitive    =  { "\\$" }
+backslash_primitive =  { "\\\\" }
+percent_primitive   =  { "%" }
+tilde_primitive     =  { "~" }
+
+plain_char =  { (!("%" | "```" | "~" | "**" | "*" | "==" | "++" | "$" | "\\" | lf_or_crlf) ~ ANY) }
+plain_text = @{ !"- " ~ plain_char+ }
+
+inline_code_char =  { !("```" | lf_or_crlf) ~ ANY }
+inline_code_text = @{ inline_code_char+ }
+inline_code      =  { PUSH("```") ~ inline_code_text ~ POP }
+
+bold        = { PUSH("**") ~ (!bold ~ inline_element)+ ~ POP }
+italic      = { PUSH("*") ~ (!italic ~ inline_element)+ ~ POP }
+highlight   = { PUSH("==") ~ (!highlight ~ inline_element)+ ~ POP }
+delete_line = { PUSH("++") ~ (!delete_line ~ inline_element)+ ~ POP }
+
+inline_math_char =  { !("\\$" | "$" | lf_or_crlf) ~ ANY }
+inline_math_code = @{ inline_math_char+ }
+inline_math      =  { PUSH("$") ~ (inline_math_code | dollar_primitive)+ ~ POP }
+
+inline_element = _{
+    inline_code | inline_math | direct_tex | bold | italic | highlight | delete_line |
+    backslash_primitive | dollar_primitive | star_primitive | percent_primitive | tilde_primitive |
+    plain_text
+}
+
+para = { inline_element+ }
+
+code_char  =  { !lf_or_crlf ~ ANY }
+code_line  = @{ !("```") ~ code_char* }
+language   = @{ code_char* }
+code_block =  { PUSH("```") ~ language ~ lf_or_crlf ~ ((shell_escape | code_line) ~ lf_or_crlf)+ ~ POP }
+
+raw_macro  = { (!("}" ~ PEEK) ~ ANY)+ }
+shell_escape = { "\\shell" ~ (PUSH("#"*) ~ "{" ~ raw_macro ~ "}" ~ POP)+ }
+direct_tex   = { "\\tex" ~ PUSH("#"*) ~ "{" ~ raw_macro ~ "}" ~ POP }
+
+display_math_char =  { !("\\]" | "\\$" | "$" | lf_or_crlf) ~ ANY }
+display_math_code = @{ display_math_char+ }
+display_math_line = _{ shell_escape | (display_math_code | dollar_primitive)+ }
+display_math      =  {
+    "\\[" ~ lf_or_crlf ~
+    display_math_line ~
+    (lf_or_crlf+ ~ display_math_line)* ~
+    lf_or_crlf ~
+    "\\]"
+}
+
+display_math_2    =  {
+    "\\[[" ~ lf_or_crlf ~
+    display_math_line ~
+    (lf_or_crlf+ ~ display_math_line)* ~
+    lf_or_crlf ~
+    "\\]]"
+}
+
+list_item = { "- " ~ block ~ (lf_or_crlf{2, } ~ block)* }
+itemize   = {
+    "\\item" ~ "{" ~
+    lf_or_crlf ~ list_item ~
+    (lf_or_crlf{2, } ~ list_item)* ~
+    lf_or_crlf ~
+    "}"
+}
+enumerate  = {
+    "\\enum" ~ "{" ~
+    lf_or_crlf ~ list_item ~
+    (lf_or_crlf{2, } ~ list_item)* ~
+    lf_or_crlf ~
+    "}"
+}
+
+title_lvl_1 = { "# " ~ inline_element+ }
+title_lvl_2 = { "## " ~ inline_element+ }
+title_lvl_3 = { "### " ~ inline_element+ }
+title_lvl_4 = { "#### " ~ inline_element+ }
+title_lvl_5 = { "##### " ~ inline_element+ }
+title_lvl_6 = { "###### " ~ inline_element+ }
+
+toc_primitive = { "[toc]" }
+
+doc_abstract = { "---" ~ lf_or_crlf ~ para ~ (lf_or_crlf{2,} ~ para)* ~ lf_or_crlf ~ "---" }
+
+block = _{
+    shell_escape | direct_tex | display_math | display_math_2 | code_block | doc_abstract |
+    itemize | enumerate |
+    title_lvl_1 | title_lvl_2 | title_lvl_3 | title_lvl_4 | title_lvl_5 | title_lvl_6 |
+    toc_primitive |
+    para
+}
+
+front_matter = {
+    "title = " ~ para ~ lf_or_crlf ~
+    "author = " ~ para ~ lf_or_crlf ~
+    "date = " ~ para ~ lf_or_crlf ~
+    "----"
+}
+
+document = { (front_matter ~ lf_or_crlf{2,})? ~ block ~ (lf_or_crlf{2, } ~ block)* ~ lf_or_crlf* }
