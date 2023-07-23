@@ -11,4 +11,4 @@ preamble_config_key = { "preamble" }
 
 config_item = { (preamble_config_key ~ " = " ~ PUSH("#"*) ~ "{" ~ preamble_config_value ~ "}" ~ POP) | (config_key ~ " = " ~ config_value)}
 
-clomeaste_config = { config_item ~ (lf_or_crlf+ ~ config_item)+ ~ lf_or_crlf* }
+clomeaste_config = { config_item ~ (lf_or_crlf+ ~ config_item)* ~ lf_or_crlf* }

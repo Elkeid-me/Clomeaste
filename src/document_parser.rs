@@ -18,6 +18,7 @@ pub fn parse_tml(document: &str) -> std::result::Result<ASTNode, Error<Rule>> {
             Rule::backslash_primitive => ASTNode::BackslashPrimitive,
             Rule::percent_primitive => ASTNode::PercentPrimitive,
             Rule::tilde_primitive => ASTNode::TildePrimitive,
+            Rule::sharp_primitive => ASTNode::SharpPrimitive,
             Rule::toc_primitive => ASTNode::TOC,
 
             Rule::direct_tex => ASTNode::DirectTeX(pair.into_inner().as_str()),

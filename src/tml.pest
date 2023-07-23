@@ -1,11 +1,12 @@
 lf_or_crlf          = _{ "\r\n" | "\n" }
 star_primitive      =  { "\\*" }
+sharp_primitive      =  { "#" }
 dollar_primitive    =  { "\\$" }
 backslash_primitive =  { "\\\\" }
 percent_primitive   =  { "%" }
 tilde_primitive     =  { "~" }
 
-plain_char =  { (!("%" | "```" | "~" | "**" | "*" | "==" | "++" | "$" | "\\" | lf_or_crlf) ~ ANY) }
+plain_char =  { (!("%" | "```" | "#" | "~" | "**" | "*" | "==" | "++" | "$" | "\\" | lf_or_crlf) ~ ANY) }
 plain_text = @{ !"- " ~ plain_char+ }
 
 inline_code_char =  { !("```" | lf_or_crlf) ~ ANY }
@@ -23,7 +24,7 @@ inline_math      =  { PUSH("$") ~ (inline_math_code | dollar_primitive)+ ~ POP }
 
 inline_element = _{
     inline_code | inline_math | direct_tex | bold | italic | highlight | delete_line |
-    backslash_primitive | dollar_primitive | star_primitive | percent_primitive | tilde_primitive |
+    backslash_primitive | dollar_primitive | star_primitive | sharp_primitive | percent_primitive | tilde_primitive |
     plain_text
 }
 
@@ -32,7 +33,7 @@ para = { inline_element+ }
 code_char  =  { !lf_or_crlf ~ ANY }
 code_line  = @{ !("```") ~ code_char* }
 language   = @{ code_char* }
-code_block =  { PUSH("```") ~ language ~ lf_or_crlf ~ ((shell_escape | code_line) ~ lf_or_crlf)+ ~ POP }
+code_block =  { PUSH("```") ~ language ~ lf_or_crlf ~ ((direct_tex | shell_escape | code_line) ~ lf_or_crlf)+ ~ POP }
 
 raw_macro  = { (!("}" ~ PEEK) ~ ANY)+ }
 shell_escape = { "\\shell" ~ (PUSH("#"*) ~ "{" ~ raw_macro ~ "}" ~ POP)+ }

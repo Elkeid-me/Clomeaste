@@ -11,6 +11,7 @@ pub fn parser_config(unparsed_config_path: &str) -> HashMap<String, String> {
     let mut clomeaste_config: HashMap<String, String> = HashMap::from([
         ("backslash_primitive".to_string(), "\\textbackslash".to_string()),
         ("percent_primitive".to_string(), "\\%".to_string()),
+        ("sharp_primitive".to_string(), "\\#".to_string()),
         ("tilde_primitive".to_string(), "\\textasciitilde".to_string()),
         ("toc_primitive".to_string(), "\\tableofcontents".to_string()),
         ("before_bold".to_string(), "\\textbf{".to_string()),
@@ -54,7 +55,7 @@ pub fn parser_config(unparsed_config_path: &str) -> HashMap<String, String> {
         ("after_title_level_5".to_string(), "".to_string()),
         ("before_title_level_6".to_string(), "".to_string()),
         ("after_title_level_6".to_string(), "".to_string()),
-        ("preamble".to_string(), "\\documentclass[a4paper]{ctexart}\n\\usepackage{minted, amsmath, amssymb}\n".to_string())
+        ("preamble".to_string(), "\\documentclass[a4paper]{ctexart}\n\\usepackage{minted, amsmath, amssymb}\n\\renewcommand{\\theFancyVerbLine}{\\ttfamily{\\arabic{FancyVerbLine}}}\n".to_string())
     ]);
 
     let unparsed_config = fs::read_to_string(unparsed_config_path);

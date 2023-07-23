@@ -9,6 +9,7 @@ pub enum ASTNode<'a> {
     BackslashPrimitive,
     PercentPrimitive,
     TildePrimitive,
+    SharpPrimitive,
     TOC,
 
     Bold(Vec<ASTNode<'a>>),
@@ -52,16 +53,19 @@ impl ASTNode<'_> {
                 write!(file, "*");
             }
             ASTNode::DollarPrimitive => {
-                write!(file, "\\$");
+                write!(file, "\\$\\ ");
             }
             ASTNode::BackslashPrimitive => {
-                write!(file, "{} ", config["backslash_primitive"]);
+                write!(file, "{}\\ ", config["backslash_primitive"]);
             }
             ASTNode::PercentPrimitive => {
-                write!(file, "{} ", config["percent_primitive"]);
+                write!(file, "{}\\ ", config["percent_primitive"]);
             }
             ASTNode::TildePrimitive => {
-                write!(file, "{} ", config["tilde_primitive"]);
+                write!(file, "{}\\ ", config["tilde_primitive"]);
+            }
+            ASTNode::SharpPrimitive => {
+                write!(file, "{}\\ ", config["sharp_primitive"]);
             }
             ASTNode::TOC => {
                 write!(file, "{}", config["toc_primitive"]);

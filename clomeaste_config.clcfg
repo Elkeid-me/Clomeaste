@@ -1,0 +1,12 @@
+preamble = ##{\documentclass[a4paper]{ctexart}
+\usepackage{minted, amsmath, amssymb}
+\usepackage[left=3cm, right=3cm, top=2.5cm, bottom=2.5cm]{geometry}
+
+\setmonofont{Consolas}
+\setCJKmonofont{思源黑体}
+\setmainfont{Cormorant Garamond}[Numbers = Uppercase]
+\setCJKmainfont{思源宋体}[BoldFont={思源黑体}, ItalicFont={华文楷体}]
+\setsansfont{思源黑体 Light}[BoldFont={思源黑体 Normal}]
+\setCJKsansfont{思源黑体 Light}[BoldFont={思源黑体 Normal}]
+\usepackage[colorlinks, linkcolor=red, anchorcolor=blue, citecolor=red, urlcolor=blue]{hyperref}
+}##

@@ -1,0 +1,272 @@
+title = Project Clomeaste：一种 LaTeX 预处理器
+author = Elkeid
+date = 2023.7.23
+----
+
+\tex#{\setcounter{section}{-1}}#
+
+# 前言
+
+排版软件有三大目标：美观、快速、简便。而在这三者之中，为了舒适地阅读，所以，美观是第一位的。TeX 及其各种变体已经基本解决了美观的问题。在使用 TeX 的过程中，如果有一种简便的语法，也能使人无比愉快。在现实生活中，存在对于排版执着追求的人，我们称这些人为排版大师。而 Clomeaste，则专为那些厌倦传统排版软件的人，量体裁衣，提供符合他们身份的排版软件。
+
+Clomeaste 项目位于 {https://github.com/Elkeid-me/Clomeaste} 。本文的 TML 源代码，以及本文使用的 clcfg 配置文件也存放于同一仓库，以供用户参考。
+
+# 简介
+
+TeX 是一套强大的排版系统，但其基础的 Plain TeX 格式使用起来极为不便。即便有 LaTeX 或 ConTeXt 等格式，TeX 在日常应用中也显得较为笨重。而 Markdown 是一种轻量级的标记语言，支持一些简单的文字效果，但不能支持较复杂的排版。是否能将两者结合起来？目前已知有两种方案：
+
+\item{
+- 在 LaTeX 中使用 ```markdown``` 宏包。这一宏包要求使用 LuaTeX 引擎，但中文用户一般使用 XeTeX 引擎，可能“水土不服”。
+
+- 使用 Pandoc 等软件将 markdown 转为 LaTeX。但
+}
+
+Clomeaste 的目标是一个 LaTeX 预处理器。我们设计了一种语法简单的标记语言：```TML``` （Thunder Monkey Language）。TML 在结构和语法上类似于 Markdown，但加入了特色功能。诚然，TML 无法发挥 TeX 的全部威力，但 Clomeaste 无意成为万灵丹，正如前言所述，Clomeaste 专为那些厌倦传统排版软件的人，量体裁衣，提供符合他们身份的排版软件。
+
+# Clomeaste 程序设计
+
+在源文件```tml.pest```中定义了 TML 语法。如你所见，Clomeaste 使用 Pest.rs 库为解析器生成器。```document_parser``` 将 tml 文档解析为抽象语法树，而 ```config_parser``` 先载入默认配置，然后尝试读取配置文件，并用其中的键值覆盖默认配置。最后，对抽象语法树深度优先遍历，调用```ASTNode```的 ```dump```方法，从而生成 tex 文件。
+
+# TML 语法设计
+
+每一个 TML 文件称之为一个文档（document）。文档由至少一个块（block）组成，TML 允许以下块：
+
+\enum{
+- 前言（front matter）。在这一部分，用户可以定义文档的标题、作者和日期。语法如下：
+
+```text
+title = <标题>
+author = <作者>
+date = <日期>
+----
+```
+
+前言在一篇文档中并不是必须的。但如果一篇文档包含前言，文档必须以前言起始。
+
+- 目录（table of contents）。语法如下：
+
+```text
+[toc]
+```
+
+- **摘要**（doc abstract）。摘要是学术论文的必要部分。语法如下：
+
+```text
+---
+段1
+
+段2
+
+...
+---
+```
+
+默认情况下，摘要使用 LaTeX 的 ```abstract``` 环境。
+
+- **段**（paragraph）。段包含一系列的行内元素（inline elements），是文档的主要组成部分。
+
+- **显示数学**（display math）和**显示数学 2**（display math 2）。显示数学的语法如下：
+
+```text
+\[
+<数学代码>
+\]
+```
+
+显示数学 2 的语法则是：
+
+```text
+\[[
+<数学代码>
+\]]
+```
+
+为何要设计两种显示数学块呢？在 LaTeX 中，简单的显示数学，使用且建议使用 ```\[``` 和 ```\]``` 包裹起来。但如```equation```这样的环境，则绝对禁止用```\[```和```\]```包裹。而在 Clomeaste 的默认配置中，显示数学恰是```\[``` 和 ```\]```包裹，显示数学 2 不被包裹，这样，```equation```等环境就可放入显示数学 2。例如：
+
+```latex
+\[[
+\begin{equation}
+\sum_{n=1}^{+\infty} \frac{1}{n}
+\end{equation}
+\]]
+```
+
+将被翻译为：
+
+```latex
+\begin{equation}
+\sum_{n=1}^{+\infty} \frac{1}{n}
+\end{equation}
+```
+
+- **直接 TeX**（direct TeX）。这个名字来源于 LuaTeX 中的 ```\directlua``` 原语。直接 TeX 允许用户在 TML 中插入 TeX 代码段，语法如下：
+
+```text
+\tex#{\tex<原始字符串字面量>}#
+```
+
+其中，<原始字符串字面量> 类似于 Rust 的原始字符串字面量，采用如下语法：
+
+```text
+n 个 # {字符串字面量} n 个 #
+例如：
+\tex##{\tex#{\setcounter{section}{-1}}#}##
+```
+
+- **外壳逃逸**（shell escape）。这一名字来源于 TeX 引擎的 shell escape。外壳逃逸允许用户运行外部命令。语法如下：
+
+```text
+\tex#{\shell <一系列原始字符串字面量>}#
+```
+
+例如：
+
+```text
+\[
+\tex#{\shell{wolframscript}{--code}{ToString[Integrate[Sin[x]^2, x], TeXForm]}}#
+\]
+```
+
+相当于运行命令：
+
+```text
+wolframscript --code "ToString[Integrate[Sin[x]^2, x], TeXForm]"
+```
+
+并将其运行结果插入在一个显示数学块中。即调用 wolframscript 求函数 $\sin^2 x$ 的积分。最终将得到：
+
+\[
+\shell{wolframscript}{--code}{ToString[Integrate[Sin[x]^2, x], TeXForm]}
+\]
+
+- **代码块**（code block）。无需多言。语法为：
+
+\tex#{\begin{minted}[linenos, frame = single]{text}
+```<语言名称>
+代码段
+```
+\end{minted}}#
+
+特别地，代码块中允许使用直接TeX或外壳逃逸。如：
+
+```text
+\tex#{\shell{xelatex}{--version}}#
+```
+
+得到
+
+```text
+\shell{xelatex}{--version}
+```
+
+- **标题**（title）。除了前言中配置的文档标题外，用户还可以使用章节标题。语法上类似 markdown，即 1 ~ 6 个 # 后跟标题内容。在 Clomeaste 的默认配置中，一级标题相当于 LaTeX 的 ```section```，二级标题相当于 ```subsection```，依此类推。用户也可自行撰写配置文件。
+
+- **有序列表**和**无序列表**。有序列表的语法是：
+
+```text
+\enum{
+- 列表项 1
+
+列表项 1 的分段
+
+- 列表项 2
+
+...
+}
+```
+
+无序列表与之类似，但是将开始的 ```\enum``` 换为 ```\item```。默认情况下，有序列表使用 ```enumerate``` 环境，而无序列表使用 ```itemize``` 环境。
+}
+
+而行内元素在语法上类似 markdown。有以下几种：
+
+\enum{
+- **纯文本**（plain text），即普通的文本。
+
+- **粗体**（bold），以 \*\* 包裹。默认使用 ```\textbf```。
+
+- **斜体**（italic），以 \* 包裹。默认使用 ```\textit```。
+
+- **高亮**（highlight），以 \tex{==} 包裹。没有默认配置。
+
+- **删除线**（delete line），以 \tex{++} 包裹。没有默认配置。
+
+- **行内数学**，以 \$ 包裹。
+
+- **行内代码**，以 \tex{\verb|```|} 包裹。默认使用 ```\verb```。你可能会疑问：markdown 的行内代码仅以一个 \tex{\verb|`|} 包裹，为什么 TML 是三个？这是因为，在 TeX 系统中，一个或两个 \tex{\verb|`|} 表示西文的前单引号或前双引号。
+}
+
+# Clomeaste 程序的使用
+
+Clomeaste 是命令行程序，允许且只允许接受两个命令行参数。即：
+
+```text
+clomeaste <输入的tml文件路径> <输出的tex文件路径>
+```
+
+运行后，Clomeaste 会先载入默认配置，然后尝试读取运行目录下的 ```clomeaste_config.clcfg``` 文件。默认配置如下：
+
+```text
+backslash_primitive = \textbackslash
+percent_primitive = \%
+sharp_primitive = \#
+tilde_primitive = \textasciitilde
+toc_primitive = \tableofcontents
+before_bold = \textbf{
+after_bold = }
+before_italic = \textit{
+after_italic = }
+before_highlight =
+after_highlight =
+before_delete_line =
+after_delete_line =
+before_inline_math = $
+after_inline_math = $
+before_inline_code = \verb|
+after_inline_code = |
+before_title = \title{
+after_title = }
+before_author = \author{
+after_author = }
+before_date = \date{
+after_date = }
+before_abstract = \begin{abstract}
+after_abstract = \end{abstract}
+before_enumerate = \begin{enumerate}
+after_enumerate = \end{enumerate}
+before_itemize = \begin{itemize}
+after_itemize = \end{itemize}
+before_display_math = \[
+after_display_math = \]
+before_display_math_2 =
+after_display_math_2 =
+code_block = minted
+before_title_level_1 = \section{
+after_title_level_1 = }
+before_title_level_2 = \subsection{
+after_title_level_2 = }
+before_title_level_3 = \subsubsection{
+after_title_level_3 = }
+before_title_level_4 = \paragraph{
+after_title_level_4 = }
+before_title_level_5 =
+after_title_level_5 =
+before_title_level_6 =
+after_title_level_6 =
+preamble = #{\documentclass[a4paper]{ctexart}
+\usepackage{minted, amsmath, amssymb}
+\renewcommand{\theFancyVerbLine}{\ttfamily{\arabic{FancyVerbLine}}}
+}#
+```
+
+用户定义的配置文件不必包含上述全部键值。例如，用户定义的配置文件可以仅有 ```before_title_level_1 = \part{``` 一行，那么这一键值便会覆盖默认配置的 ```before_title_level_1``` 。
+
+# 结语
+
+计算机排版之精妙，实非笔者所能穷尽。若假余二十年，则余愿以 Rust 构筑支持 OpenType 和 PDF 的现代 TeX 系统，可惜大作业只有两个月而已，TML 之构想，尚未完全实现，悲夫！
+
+\item{
+- Clomeaste 使用了 Pest.rs 作为解析器生成器。
+
+- Clomeaste 文档（本文档）使用了开源字体思源宋体和 Cormorant Garamond。
+}
