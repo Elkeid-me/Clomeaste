@@ -18,7 +18,7 @@ TeX 是一套强大的排版系统，但其基础的 Plain TeX 格式使用起�
 \item{
 - 在 LaTeX 中使用 ```markdown``` 宏包。这一宏包要求使用 LuaTeX 引擎，但中文用户一般使用 XeTeX 引擎，可能“水土不服”。
 
-- 使用 Pandoc 等软件将 markdown 转为 LaTeX。但
+- 使用 Pandoc 等软件将 markdown 转为 LaTeX。
 }
 
 Clomeaste 的目标是一个 LaTeX 预处理器。我们设计了一种语法简单的标记语言：```TML``` （Thunder Monkey Language）。TML 在结构和语法上类似于 Markdown，但加入了特色功能。诚然，TML 无法发挥 TeX 的全部威力，但 Clomeaste 无意成为万灵丹，正如前言所述，Clomeaste 专为那些厌倦传统排版软件的人，量体裁衣，提供符合他们身份的排版软件。
