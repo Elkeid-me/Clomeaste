@@ -1,5 +1,5 @@
-use std::fs;
 use std::collections::HashMap;
+use std::fs;
 
 use pest::Parser;
 use pest_derive::Parser;
@@ -67,10 +67,10 @@ pub fn parser_config(unparsed_config_path: &str) -> HashMap<String, String> {
                 Ok(mut pair) => {
                     pair.next().unwrap().into_inner().for_each(|pair| {
                         let mut inside_iter = pair.into_inner();
-                        let config_key = inside_iter.next().unwrap().as_str();
-                        let config_value = inside_iter.next().unwrap().as_str();
-
-                        clomeaste_config.insert(config_key.to_string(), config_value.to_string());
+                        clomeaste_config.insert(
+                            inside_iter.next().unwrap().as_str().to_string(),
+                            inside_iter.next().unwrap().as_str().to_string(),
+                        );
                     });
                     clomeaste_config
                 }

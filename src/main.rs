@@ -1,7 +1,4 @@
-use std::fs;
-use std::env;
-use std::io::Result;
-use std::process;
+use std::{env, fs, io::Result, process};
 
 mod ast_def;
 mod config_parser;

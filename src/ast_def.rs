@@ -26,10 +26,7 @@ pub enum ASTNode<'a> {
     FrontMatter(Vec<ASTNode<'a>>),
     Paragraph(Vec<ASTNode<'a>>),
     Abstract(Vec<ASTNode<'a>>),
-    CodeBlock {
-        language: &'a str,
-        lines: Vec<ASTNode<'a>>,
-    },
+    CodeBlock { language: &'a str, lines: Vec<ASTNode<'a>> },
     DisplayMath(Vec<ASTNode<'a>>),
     DisplayMath2(Vec<ASTNode<'a>>),
     Enumerate(Vec<ASTNode<'a>>),
@@ -155,11 +152,7 @@ impl ASTNode<'_> {
                     write!(file, "\\end{{verbatim}}");
                 }
                 _ => {
-                    writeln!(
-                        file,
-                        "\\begin{{minted}}[linenos, frame = single]{{{}}}",
-                        language
-                    );
+                    writeln!(file, "\\begin{{minted}}[linenos, frame = single]{{{}}}", language);
                     lines.into_iter().for_each(|i| {
                         i.dump(file, config);
                         write!(file, "\n");
@@ -198,9 +191,7 @@ impl ASTNode<'_> {
             }
             ASTNode::ShellEscape(s) => {
                 match Command::new(s[0]).args(&s[1..]).output() {
-                    Ok(output) => {
-                        file.write_all(String::from_utf8(output.stdout).unwrap().trim().as_bytes())
-                    }
+                    Ok(output) => file.write_all(String::from_utf8(output.stdout).unwrap().trim().as_bytes()),
                     Err(_) => file.write_all("Running Error".as_bytes()),
                 };
             }
