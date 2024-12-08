@@ -69,27 +69,27 @@ impl ASTNode<'_> {
             }
             ASTNode::Bold(inside) => {
                 write!(file, "{}", config["before_bold"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_bold"]);
             }
             ASTNode::Italic(inside) => {
                 write!(file, "{}", config["before_italic"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_italic"]);
             }
             ASTNode::Highlight(inside) => {
                 write!(file, "{}", config["before_highlight"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_highlight"]);
             }
             ASTNode::DeleteLine(inside) => {
                 write!(file, "{}", config["before_delete_line"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_delete_line"]);
             }
             ASTNode::InlineMath(inside) => {
                 write!(file, "{}", config["before_inline_math"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_inline_math"]);
             }
             ASTNode::InlineMathCode(s) => {
@@ -115,20 +115,20 @@ impl ASTNode<'_> {
             ASTNode::FrontMatter(inside) => {
                 write!(file, "{}", config["before_title"]);
                 inside[0].dump(file, config);
-                write!(file, "{}\n", config["after_title"]);
+                writeln!(file, "{}", config["after_title"]);
                 write!(file, "{}", config["before_author"]);
                 inside[1].dump(file, config);
-                write!(file, "{}\n", config["after_author"]);
+                writeln!(file, "{}", config["after_author"]);
                 write!(file, "{}", config["before_date"]);
                 inside[2].dump(file, config);
-                write!(file, "{}\n", config["after_date"]);
+                writeln!(file, "{}", config["after_date"]);
             }
             ASTNode::Paragraph(inside) => {
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
             }
             ASTNode::Abstract(inside) => {
                 writeln!(file, "{}", config["before_abstract"]);
-                inside.into_iter().for_each(|i| {
+                inside.iter().for_each(|i| {
                     i.dump(file, config);
                     write!(file, "\n\n");
                 });
@@ -137,53 +137,53 @@ impl ASTNode<'_> {
             ASTNode::CodeBlock { language, lines } => match &config["code_block"] as &str {
                 "lstlsting" => {
                     writeln!(file, "\\begin{{lstlisting}}");
-                    lines.into_iter().for_each(|i| {
+                    lines.iter().for_each(|i| {
                         i.dump(file, config);
-                        write!(file, "\n");
+                        writeln!(file);
                     });
                     write!(file, "\\end{{lstlisting}}");
                 }
                 "verbatim" => {
                     writeln!(file, "\\begin{{verbatim}}");
-                    lines.into_iter().for_each(|i| {
+                    lines.iter().for_each(|i| {
                         i.dump(file, config);
-                        write!(file, "\n");
+                        writeln!(file);
                     });
                     write!(file, "\\end{{verbatim}}");
                 }
                 _ => {
                     writeln!(file, "\\begin{{minted}}[linenos, frame = single]{{{}}}", language);
-                    lines.into_iter().for_each(|i| {
+                    lines.iter().for_each(|i| {
                         i.dump(file, config);
-                        write!(file, "\n");
+                        writeln!(file);
                     });
                     write!(file, "\\end{{minted}}");
                 }
             },
             ASTNode::DisplayMath(inside) => {
                 writeln!(file, "{}", config["before_display_math"]);
-                inside.into_iter().for_each(|i| {
+                inside.iter().for_each(|i| {
                     i.dump(file, config);
-                    write!(file, "\n");
+                    writeln!(file);
                 });
                 write!(file, "{}", config["after_display_math"]);
             }
             ASTNode::DisplayMath2(inside) => {
                 writeln!(file, "{}", config["before_display_math_2"]);
-                inside.into_iter().for_each(|i| {
+                inside.iter().for_each(|i| {
                     i.dump(file, config);
-                    write!(file, "\n");
+                    writeln!(file);
                 });
                 write!(file, "{}", config["after_display_math_2"]);
             }
             ASTNode::Enumerate(inside) => {
                 writeln!(file, "{}", config["before_enumerate"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_enumerate"]);
             }
             ASTNode::Itemize(inside) => {
                 writeln!(file, "{}", config["before_itemize"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_itemize"]);
             }
             ASTNode::DirectTeX(s) => {
@@ -197,44 +197,44 @@ impl ASTNode<'_> {
             }
             ASTNode::TitleLevel1(inside) => {
                 write!(file, "{}", config["before_title_level_1"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_1"]);
             }
             ASTNode::TitleLevel2(inside) => {
                 write!(file, "{}", config["before_title_level_2"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_2"]);
             }
             ASTNode::TitleLevel3(inside) => {
                 write!(file, "{}", config["before_title_level_3"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_3"]);
             }
             ASTNode::TitleLevel4(inside) => {
                 write!(file, "{}", config["before_title_level_4"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_4"]);
             }
             ASTNode::TitleLevel5(inside) => {
                 write!(file, "{}", config["before_title_level_5"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_5"]);
             }
             ASTNode::TitleLevel6(inside) => {
                 write!(file, "{}", config["before_title_level_6"]);
-                inside.into_iter().for_each(|i| i.dump(file, config));
+                inside.iter().for_each(|i| i.dump(file, config));
                 write!(file, "{}", config["after_title_level_6"]);
             }
             ASTNode::ListItem(inside) => {
                 write!(file, "\\item ");
-                inside.into_iter().for_each(|i| {
+                inside.iter().for_each(|i| {
                     i.dump(file, config);
                     write!(file, "\n\n");
                 });
             }
             ASTNode::Document(inside) => {
                 write!(file, "{}", config["preamble"]);
-                let mut iter = inside.into_iter();
+                let mut iter = inside.iter();
                 let block_1 = iter.next().unwrap();
                 match block_1 {
                     ASTNode::FrontMatter(_) => {
